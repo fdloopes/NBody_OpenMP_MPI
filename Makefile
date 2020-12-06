@@ -1,8 +1,8 @@
-CXX= g++
+CXX= mpicxx
 LINK = $(CXX)
 EXE = nbody_simulation
 CXXFLAGS = -O3 -std=c++11
-CXXFLAGSPARALLEL = -fopenmp -O3 -std=c++11 -lpthread
+CXXFLAGSPARALLEL = -fopenmp -lgomp -O3 -std=c++11 -lpthread
 
 #CXXFLAGS += -g -DVERBOSE
 
@@ -11,12 +11,7 @@ OBJ = $(SRC:.cpp=.o)
 
 OBJ_ROOT = nbody.o
 
-default: $(EXE)
-
-$(EXE): $(OBJ) $(OBJ_ROOT)
-	$(LINK) $(OBJ) $(CXXFLAGS) -o $@
-
-openmp: $(EXE)
+mpi: $(EXE)
 
 $(EXE): $(OBJ) $(OBJ_ROOT)
 	$(LINK) $(OBJ) $(CXXFLAGSPARALLEL) -o $@

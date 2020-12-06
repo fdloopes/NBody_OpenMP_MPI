@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <omp.h>
+#include <mpi.h>
 
 
 void calculate_force(Particle* this_particle1, Particle* this_particle2,
@@ -86,7 +87,7 @@ int main (int argc, char** argv) {
 		std::cout << "Informe o numero de threads e um arquivo com os parâmetros de entrada: ./nbody_simulation <n_threads> <input_file.in>\n";
 		std::abort();
 	}
-
+	int worldSize, myRank;
 	Particle* particle_array  = nullptr;
 	Particle* particle_array2 = nullptr;
 
@@ -103,17 +104,22 @@ int main (int argc, char** argv) {
 
 	long start = wtime();
 
+	/* initialize MPI stuff */
+	MPI_Init(NULL, NULL);
+	MPI_Comm_size(MPI_COMM_WORLD,&worldSize);
+	MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
+
 	#pragma omp parallel
 	{
-	#pragma omp for
-	for(int timestep = 1; timestep <= number_of_timesteps; timestep++) {
-		nbody(particle_array, particle_array2);
-		/* swap arrays */
-		Particle * tmp = particle_array;
-		particle_array = particle_array2;
-		particle_array2 = tmp;
-		printf("   Iteração %d OK\n", timestep);
-	}
+		#pragma omp for
+		for(int timestep = 1; timestep <= number_of_timesteps; timestep++) {
+			nbody(particle_array, particle_array2);
+			/* swap arrays */
+			Particle * tmp = particle_array;
+			particle_array = particle_array2;
+			particle_array2 = tmp;
+			printf("   Iteração %d OK\n", timestep);
+		}
 	}
 	long end = wtime();
 	double time = (end - start) / 1000000.0;
@@ -134,6 +140,9 @@ int main (int argc, char** argv) {
 
 	particle_array  = Particle_array_destruct(particle_array, number_of_particles);
 	particle_array2 = Particle_array_destruct(particle_array2, number_of_particles);
+
+	/* finalize MPI */
+	MPI_Finalize();
 
 	return PROGRAM_SUCCESS_CODE;
 }
