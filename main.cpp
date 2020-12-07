@@ -37,17 +37,10 @@ void nbody(Particle* d_particles, Particle* output, int worldSize, int myRank) {
     int fim = (myRank + 1) * number_of_particles / worldSize;
     //printf("%d: minha base é:%d e meu fim é:%d\n", myRank, base, fim);
 
-    if (myRank == 1) {
-        printf("%d: TO AQUI\n", myRank);
-    }
 #pragma omp parallel
     {
 #pragma omp for
         for (int id = base; id < fim; id++) {
-            if (myRank == 1) {
-                printf("%d: TO AQUI TB?\n", myRank);
-            }
-
             //  printf("-- %d: calculando a posição %d. -- ", myRank, id);
             Particle* this_particle = &output[id];
 

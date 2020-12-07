@@ -21,6 +21,7 @@ $(EXE): $(OBJ) $(OBJ_ROOT)
 
 clean:
 	rm -rf *.o $(EXE)
+	rm -rf nbody_simulation.out
 
 clean-o:
 	rm -rf *.o
