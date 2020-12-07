@@ -36,6 +36,7 @@ void nbody(Particle* d_particles, Particle* output, int worldSize, int myRank) {
     // (myRank-1) * number_of_particles / worldSize diz quantas particulas ja foram dos outros
     int base = myRank == 0 ? 0 : (myRank - 1) * number_of_particles / worldSize;
     int fim = myRank * number_of_particles / worldSize;
+
     // segmentation fault => deveria usar todos * todos
     // mas a base e fim precisa igual, pra saber quais o proesso vai calcular, porém o
     // segundo for vai ser sempre o total de particulas
@@ -120,34 +121,35 @@ int main(int argc, char** argv) {
 
     omp_set_num_threads(atoi(argv[1]));  // Set number of threads
     long start;
+    particle_array = Particle_array_construct(number_of_particles);
+    particle_array2 = Particle_array_construct(number_of_particles);
     if (myRank == 0) {
         FILE* input_data = fopen(argv[2], "r");
         Particle_input_arguments(input_data);
 
-        particle_array = Particle_array_construct(number_of_particles);
-        particle_array2 = Particle_array_construct(number_of_particles);
         Particle_array_initialize(particle_array, number_of_particles);
         start = wtime();
         printf("Processando simulação NBody....\n");
     }
 
-    // manda os 2 vetores de particulas divididos para todos os processos
-    Particle* localParticles1;
-    Particle* localParticles2;
-    localParticles1 = (Particle*)malloc(sizeof(Particle) * number_of_particles / worldSize);
-    localParticles2 = (Particle*)malloc(sizeof(Particle) * number_of_particles / worldSize);
-    MPI_Scatter(particle_array, number_of_particles / worldSize, Particle_t, localParticles1, number_of_particles / worldSize, Particle_t, 0, MPI_COMM_WORLD);
-    MPI_Scatter(particle_array2, number_of_particles / worldSize, Particle_t, localParticles2, number_of_particles / worldSize, Particle_t, 0, MPI_COMM_WORLD);
+    for (int timestep = 1; timestep <= number_of_timesteps; timestep++) {
+        printf("1\n");
+        MPI_Bcast(particle_array, number_of_particles, Particle_t, 0, MPI_COMM_WORLD);
+        MPI_Bcast(particle_array2, number_of_particles, Particle_t, 0, MPI_COMM_WORLD);
+        // MPI_Scatter(particle_array, number_of_particles, Particle_t, localParticles1, number_of_particles, Particle_t, 0, MPI_COMM_WORLD);
+        printf("2\n");
+        //MPI_Scatter(particle_array2, number_of_particles, Particle_t, localParticles2, number_of_particles, Particle_t, 0, MPI_COMM_WORLD);
+        nbody(particle_array, particle_array2, worldSize, myRank);
+        // precisa fazer aqui uma forma de pegar só a parte que cada rank fez
 
-#pragma omp parallel
-    {
-#pragma omp for
-        for (int timestep = 1; timestep <= number_of_timesteps; timestep++) {
-            nbody(localParticles1, localParticles2, worldSize, myRank);
+        //MPI_Gather(&localParticles1[myRank * number_of_particles / worldSize], number_of_particles / worldSize, MPI_INT, particle_array, number_of_particles / worldSize, Particle_t, 0, MPI_COMM_WORLD);
+        // MPI_Gather(&localParticles2[myRank * number_of_particles / worldSize], number_of_particles / worldSize, MPI_INT, particle_array2, number_of_particles / worldSize, Particle_t, 0, MPI_COMM_WORLD);
+
+        if (myRank == 0) {
             /* swap arrays */
-            Particle* tmp = localParticles1;
-            localParticles1 = localParticles2;
-            localParticles2 = tmp;
+            Particle* tmp = particle_array;
+            particle_array = particle_array2;
+            particle_array2 = tmp;
             printf("   Iteração %d OK\n", timestep);
         }
     }
@@ -173,10 +175,11 @@ int main(int argc, char** argv) {
     if (myRank == 0) {
         particle_array = Particle_array_destruct(particle_array, number_of_particles);
         particle_array2 = Particle_array_destruct(particle_array2, number_of_particles);
+    } else {
+        free(particle_array);
+        free(particle_array2);
     }
 
-    free(localParticles1);
-    free(localParticles2);
     /* finalize MPI */
     MPI_Finalize();
 
