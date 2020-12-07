@@ -2,7 +2,7 @@ CXX= mpicxx
 LINK = $(CXX)
 EXE = nbody_simulation
 CXXFLAGS = -O3 -std=c++11
-CXXFLAGSPARALLEL = -fopenmp -lgomp -O3 -std=c++11 -lpthread
+CXXFLAGSPARALLEL = -fopenmp -lgomp -O3 -std=c++11 -lpthread -fpermissive
 
 #CXXFLAGS += -g -DVERBOSE
 
