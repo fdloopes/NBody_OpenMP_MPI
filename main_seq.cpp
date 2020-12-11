@@ -149,9 +149,6 @@ int main(int argc, char** argv) {
         printf("Nro. de Partículas: %d\n", number_of_particles);
         printf("Nro. de Iterações: %d\n", number_of_timesteps);
         printf("Tempo: %.8f segundos\n", time);
-
-        FILE* fileptr = fopen("simulations.txt", "a");
-        fprintf(fileptr, "%.8f\n", time);
     }
 
 #ifdef VERBOSE

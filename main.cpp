@@ -160,15 +160,6 @@ int main(int argc, char** argv) {
         printf("Nro. de Partículas: %d\n", number_of_particles);
         printf("Nro. de Iterações: %d\n", number_of_timesteps);
         printf("Tempo: %.8f segundos\n", time);
-
-        //Imprimir saída para arquivo
-        //printf("\nImprimindo saída em arquivo...\n");
-        //FILE* fileptr = fopen("nbody_simulation.out", "w");
-        //Particle_array_output_xyz(fileptr, particle_array, number_of_particles);
-        //printf("Saída da simulação salva no arquivo nbody_simulation.out\n");
-
-        FILE * fileptr = fopen("simulations.txt", "a");
-	      fprintf(fileptr, "%.8f\n", time);
     }
 
 #ifdef VERBOSE
